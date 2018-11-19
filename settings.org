@@ -96,12 +96,12 @@ Find file interactively
 
 ** org-bullets
 *** code
-#BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 
 (require 'org-bullets)
 (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1)))
 
-#END_SRC
+#+END_SRC
 
 ** ivy + swiper + counsel
    Install counsel package from melpa which will install swiper and ivy as
@@ -264,11 +264,11 @@ Can find others in melpa and load from there:
  - cycle-themes
    - see config in Installed Packages [[cycle themes]] section
 ** exotica-theme
-#BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp
 
 (load-theme 'exotica t)
 
-#END_SRC
+#+END_SRC
 
 
 * Key Bindings
