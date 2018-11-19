@@ -54,9 +54,13 @@ scroll bars, turn on line numbers, etc...
 #+END_SRC
 
 * Font
+Set font to use in all buffers.
+** code
 #+BEGIN_SRC emacs-lisp
+
 (set-face-attribute 'default t :font "Anonymous Pro-16" )
 (set-frame-font "Anonymous Pro-16" nil t)
+
 #+END_SRC
 
 * ido
@@ -260,6 +264,7 @@ Find file interactively
 #+END_SRC
 
 ** ox-reveal
+   Must add [[org-elpa]] before package can be installed.
 *** code
 #+BEGIN_SRC emacs-lisp
 (require 'ox-reveal)
