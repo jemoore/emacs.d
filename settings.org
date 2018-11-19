@@ -4,8 +4,18 @@
 ** melpa
 #+BEGIN_SRC emacs-lisp
 
+(require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/" ) t)
 (package-initialize)
+
+#+END_SRC
+
+** org-elpa
+This is mainly here for the ox-reveal package.
+#+BEGIN_SRC emacs-lisp
+
+(require 'package)
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 
 #+END_SRC
 
@@ -26,7 +36,7 @@ scroll bars, turn on line numbers, etc...
 (setq make-backup-files nil)
 (global-linum-mode 1)
 
-(defalias 'yes-or-no-p' 'y-or-n-p')
+(fset 'yes-or-no-p 'y-or-n-p)
 (display-time-mode 1)
 (display-battery-mode 1)
 (setq column-number-mode t)
@@ -88,9 +98,9 @@ Find file interactively
 #+BEGIN_SRC emacs-lisp
 
 (setq cycle-themes-theme-list
-'(exotica solarized-dark))
+'(alect-themes atom-one-dark zenburn))
 (require 'cycle-themes)
-(cycle-themes-mode)
+(cycle-themes-mode 1)
 
 #+END_SRC
 
@@ -118,7 +128,7 @@ Find file interactively
 (global-set-key (kbd "M-x") 'counsel-M-x)
 (global-set-key (kbd "C-x C-f") 'counsel-find-file)
 ;; I added counsel-yank-pop binding
-(global-set-key (kbd "C-y" 'counsel-yank-pop)
+(global-set-key (kbd "C-y") 'counsel-yank-pop)
 (global-set-key (kbd "<f1> f") 'counsel-describe-function)
 (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
 (global-set-key (kbd "<f1> l") 'counsel-find-library)
@@ -197,7 +207,7 @@ Find file interactively
 ** yasnippet
    Install package from melpa.
 *** code
-#+BEGIN_SRC
+#+BEGIN_SRC emacs-lisp
 ;; specify folder containing personal snippets. 
 (add-to-list 'load-path
              "~/.emacs.d/plugins/yasnippet")
@@ -231,10 +241,6 @@ Find file interactively
 
 ** yasnippet-snippets
  Collection of yasnippet snippets.
-*** code
-#+BEGIN_SRC
-
-#+END_SRC
 
 ** highlight-indent-guides
    Install package from melpa.
@@ -257,16 +263,20 @@ Find file interactively
 
 ** evil
 
+
 * Themes
 See '''M-x customize-themes''' for examples
 Can find others in melpa and load from there:
- - exotica-theme
  - cycle-themes
    - see config in Installed Packages [[cycle themes]] section
-** exotica-theme
+** current theme
 #+BEGIN_SRC emacs-lisp
 
-(load-theme 'exotica t)
+;;(load-theme 'zenburn t)
+;;(load-theme 'alect-light)
+(load-theme 'alect-dark)
+;;(load-theme 'alect-black)
+;;(load-theme 'atom-one-dark)
 
 #+END_SRC
 
@@ -279,10 +289,11 @@ Can find others in melpa and load from there:
 (global-set-key (kbd "M-D") 'backward-kill-word)
 (global-set-key (kbd "DEL") 'backward-delete-char)
 (global-set-key (kbd "C-z") 'replace-string)
-(global-set-key (kbd "C-M-z") 'replace regex)
-(global-setkey (kbd "C-Z") 'count-matches)
+;;(global-set-key (kbd "C-M-z") 'replace regex)
+(global-set-key (kbd "C-Z") 'count-matches)
 
 #+END_SRC
+
 
 * org-mode customizations
 ** code
