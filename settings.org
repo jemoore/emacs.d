@@ -53,6 +53,11 @@ scroll bars, turn on line numbers, etc...
 
 #+END_SRC
 
+* Font
+#+BEGIN_SRC emacs-lisp
+(set-face-attribute 'default t :font "Anonymous Pro-16" )
+(set-frame-font "Anonymous Pro-16" nil t)
+#+END_SRC
 
 * ido
 ** Description
