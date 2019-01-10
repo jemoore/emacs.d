@@ -3,29 +3,21 @@
 * Packages
 ** melpa
 #+BEGIN_SRC emacs-lisp
-
-(require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/" ) t)
-(package-initialize)
-
 #+END_SRC
 
 ** org-elpa
 This is mainly here for the ox-reveal package.
 #+BEGIN_SRC emacs-lisp
-
-(require 'package)
 (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
-
 #+END_SRC
 
 
 * Basic Emacs settings
 This section contains the basic Emacs settings to turn off menu, toolbars,
 scroll bars, turn on line numbers, etc...
-** code
-#+BEGIN_SRC emacs-lisp
 
+#+BEGIN_SRC emacs-lisp
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -34,7 +26,8 @@ scroll bars, turn on line numbers, etc...
 
 (setq inhibit-splash-screen t)
 (setq make-backup-files nil)
-(global-linum-mode 1)
+;; line numbers interfears with git gutter
+;;(global-linum-mode 1)
 
 (fset 'yes-or-no-p 'y-or-n-p)
 (display-time-mode 1)
@@ -53,30 +46,28 @@ scroll bars, turn on line numbers, etc...
 
 #+END_SRC
 
+
 * Font
 Set font to use in all buffers.
-** code
 #+BEGIN_SRC emacs-lisp
-
-(set-face-attribute 'default t :font "Anonymous Pro-16" )
-(set-frame-font "Anonymous Pro-16" nil t)
-
+(set-face-attribute 'default t :font "Source Code Pro-16" )
+(set-frame-font "Source Code Pro-16" nil t)
 #+END_SRC
 
+
 * ido
-** Description
 Interactive DO.
 Find file interactively
-*** code
 #+BEGIN_SRC emacs-lisp
-
+(use-package ido
+:ensure t
+:config
 (ido-mode 1)
 (setq ido-everywhere t)
 (setq ido-enable-flex-matching t)
 (setq ido-use-filename-at-point 'guess)
 (setq ido-create-new-buffer 'always)
-(setq ido-file-extension-order '("*.org" ".txt" ".csv"))
-
+(setq ido-file-extension-order '("*.org" ".txt" ".csv")))
 #+END_SRC
 
 ** winner mode
@@ -91,43 +82,45 @@ Find file interactively
 
 * Installed Packages
 ** ido describe binding
-   This package bust be manually installed from melpa.
+   This package must be manually installed from melpa.
+
 ** ido grid mode
-   This package bust be manually installed from melpa.
-   The following code will make sure grid mode is used everywhere.
-*** code
 #+BEGIN_SRC emacs-lisp
-
-(ido-grid-mode 1)
-
+(use-package ido-grid-mode
+:ensure t
+:config
+(ido-grid-mode 1))
 #+END_SRC
 
 ** cycle themes
-*** code
 #+BEGIN_SRC emacs-lisp
-
 (setq cycle-themes-theme-list
-'(alect-themes atom-one-dark zenburn))
-(require 'cycle-themes)
-(cycle-themes-mode 1)
-
+'(atom-one-dark alect-themes zenburn))
+(use-package cycle-themes
+:ensure t
+:config
+(cycle-themes-mode 1))
 #+END_SRC
 
-** org-bullets
-*** code
+** org
 #+BEGIN_SRC emacs-lisp
+(use-package org
+:ensure t
+:pin org)
 
-(require 'org-bullets)
-(add-hook 'org-mode-hook (lambda() (org-bullets-mode 1)))
-
+(use-package org-bullets
+:ensure t
+:config
+(add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
 #+END_SRC
 
 ** ivy + swiper + counsel
    Install counsel package from melpa which will install swiper and ivy as
    dependencies.
-*** code
 #+BEGIN_SRC emacs-lisp
 ;; from https://github.com/abo-abo/swiper
+(use-package counsel :ensure t)
+
 (ivy-mode 1)
 (setq ivy-use-virtual-buffers t)
 (setq enable-recursive-minibuffers t)
@@ -135,7 +128,7 @@ Find file interactively
 (global-set-key (kbd "C-c C-r") 'ivy-resume)
 (global-set-key (kbd "<f6>") 'ivy-resume)
 (global-set-key (kbd "M-x") 'counsel-M-x)
-(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+;;(global-set-key (kbd "C-x C-f") 'counsel-find-file)
 ;; I added counsel-yank-pop binding
 (global-set-key (kbd "C-y") 'counsel-yank-pop)
 (global-set-key (kbd "<f1> f") 'counsel-describe-function)
@@ -153,99 +146,106 @@ Find file interactively
 
 ** magit
    Install magit from melpa.
-*** code
 #+BEGIN_SRC emacs-lisp
+(use-package magit
+:ensure t
+:init
+(progn
+(bind-key "C-x g" 'magit-status)
+))
 
-(require 'magit)
-
+(use-package git-gutter
+:ensure t
+:init
+(global-git-gutter-mode +1))
 #+END_SRC
 
 ** iedit
    https://www.emacswiki.org/emacs/Iedit
-   Install package from melpa. Use '''Ctrl-;''' over a variable then all edits
+   Use '''Ctrl-;''' over a variable then all edits
    to that variable will change all instances of the variable. Can limit to an
    area by highlighting area then narrowing. Then use '''Ctrl-;''' to change a
    variable. Only instances in this narrowed area will be changed.
-*** code
 #+BEGIN_SRC emacs-lisp
-(require 'iedit)
+(use-package iedit :ensure t)
 #+END_SRC
 
 ** paredit
-*** code
 #+BEGIN_SRC emacs-lisp
-(require 'paredit)
-(paredit-mode 1)
+(use-package paredit
+:ensure t
+:config
+(paredit-mode 1))
 #+END_SRC
 
 ** company
-   Install package from melpa
    https://www.emacswiki.org/emacs/CompanyMode
-*** code
 #+BEGIN_SRC emacs-lisp
-
+(use-package company
+:ensure t
+:config
 (add-hook 'after-init-hook 'global-company-mode)
 (global-company-mode t)
 (setq company-minimum-prefix-length 1)
-(setq company-idle-delay 0)
+(setq company-idle-delay 0))
 #+END_SRC
 
 ** company-quickhelp
-   Install package from melpa.
-*** code
 #+BEGIN_SRC emacs-lisp
+(use-package company-quickhelp
+:ensure t
+:config
 (company-quickhelp-mode 1)
-(setq company-quickhelp-delay 0)
+(setq company-quickhelp-delay 0))
 #+END_SRC
 
 ** anaconda-mode
    This is a dependency for company-anaconda, so will be installed by
    company-anaconda
-*** code
 #+BEGIN_SRC emacs-lisp
 (add-hook 'python-mode-hook 'anaconda-mode)
 #+END_SRC
 
 ** company-anaconda
-*** code
 #+BEGIN_SRC emacs-lisp
-(require 'rx)
+(use-package rx
+:ensure t)
 (add-to-list 'company-backends 'company-anaconda)
 #+END_SRC
 
 ** yasnippet
-   Install package from melpa.
-*** code
 #+BEGIN_SRC emacs-lisp
-;; specify folder containing personal snippets. 
-(add-to-list 'load-path
-             "~/.emacs.d/plugins/yasnippet")
-(require 'yasnippet)
-(yas-global-mode 1)
-
-;; follow prevents interference with company mode
-;; see 'Yasnippet integration' section of
-;; https://www.emacswiki.org/emacs/CompanyMode
-(defun check-expansion ()
-  (save-excursion
-    (if (looking-at "\\_>") t
-      (backward-char 1)
-      (if (looking-at "\\.") t
-        (backward-char 1)
-        (if (looking-at "->") t nil)))))
- (defun do-yas-expand ()
-  (let ((yas/fallback-behavior 'return-nil))
-    (yas/expand)))
- (defun tab-indent-or-complete ()
-  (interactive)
-  (if (minibufferp)
-      (minibuffer-complete)
-    (if (or (not yas/minor-mode)
-            (null (do-yas-expand)))
-        (if (check-expansion)
-            (company-complete-common)
-          (indent-for-tab-command)))))
- (global-set-key [tab] 'tab-indent-or-complete)
+;;;; specify folder containing personal snippets. 
+;;(add-to-list 'load-path
+;;             "~/.emacs.d/plugins/yasnippet")
+;;(use-package yasnippet
+;;:ensure t
+;;:config
+;;(yas-global-mode 1))
+;;
+;;;; follow prevents interference with company mode
+;;;; see 'Yasnippet integration' section of
+;;;; https://www.emacswiki.org/emacs/CompanyMode
+;;(defun check-expansion ()
+;;  (save-excursion
+;;    (if (looking-at "\\_>") t
+;;      (backward-char 1)
+;;      (if (looking-at "\\.") t
+;;        (backward-char 1)
+;;        (if (looking-at "->") t nil)))))
+;; (defun do-yas-expand ()
+;;  (let ((yas/fallback-behavior 'return-nil))
+;;    (yas/expand)))
+;; (defun tab-indent-or-complete ()
+;;  (interactive)
+;;  (if (minibufferp)
+;;      (minibuffer-complete)
+;;    (if (or (not yas/minor-mode)
+;;            (null (do-yas-expand)))
+;;        (if (check-expansion)
+;;            (company-complete-common)
+;;          (indent-for-tab-command)))))
+;; (global-set-key [tab] 'tab-indent-or-complete)
 #+END_SRC
 
 ** yasnippet-snippets
@@ -255,23 +255,72 @@ Find file interactively
    Install package from melpa.
    https://github.com/DarthFennec/highlight-indent-guides
    Highlights indentation levels.
-*** code
 #+BEGIN_SRC emacs-lisp
-(require 'highlight-indent-guides)
+(use-package highlight-indent-guides
+:ensure t
+:config
 (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
 (setq highlight-indent-guides-method 'character)
 ;; (setq highlight-indent-guides-character ?\|)
+)
 #+END_SRC
 
 ** ox-reveal
    Must add [[org-elpa]] before package can be installed.
-*** code
 #+BEGIN_SRC emacs-lisp
-(require 'ox-reveal)
-(setq org-reveal-root "file:///C:/Users/jeffe/dev/3rdparty/revealjs")
+;;(use-package ox-reveal
+;;:ensure t
+;;:pin org
+;;)
+;;(setq org-reveal-root "file:///D:/dev/3rdparty/revealjs")
 #+END_SRC
 
 ** evil
+Configuration from: https://github.com/bradwright/emacs.d/blob/master/setup-evil.el
+#+BEGIN_SRC emacs-lisp 
+
+(use-package undo-tree :ensure t)
+(use-package goto-chg :ensure t)
+
+(use-package evil
+:ensure t
+:config
+(evil-mode 1)
+)
+
+(setq
+   ;; this stops evil from overwriting the cursor color
+   evil-default-cursor t
+   ;; h/l wrap around to next lines
+   evil-cross-lines t
+   evil-default-state 'normal
+   ;; include first/last character when moving to e/bol
+   evil-want-visual-char-semi-exclusive t
+   ;; don't move the cursor around like Vim
+   evil-move-cursor-back nil
+   )
+
+  ;; use ido to open files
+  (define-key evil-ex-map "e " 'ido-find-file)
+  (define-key evil-ex-map "b " 'ido-switch-buffer)
+
+  ;; make end-of-line work in insert
+  (define-key evil-insert-state-map "\C-e" 'end-of-line)
+
+;;  ;; Make C-g work like <esc>
+;;  (define-key evil-normal-state-map "\C-g" 'evil-normal-state)
+;;  (define-key evil-visual-state-map "\C-g" 'evil-normal-state)
+;;  (define-key evil-insert-state-map "\C-g" 'evil-normal-state)
+;;
+;;  (define-key evil-normal-state-map [escape] 'keyboard-quit)
+;;  (define-key evil-visual-state-map [escape] 'keyboard-quit)
+;;  (define-key minibuffer-local-map [escape] 'abort-recursive-edit)
+;;  (define-key minibuffer-local-ns-map [escape] 'abort-recursive-edit)
+;;  (define-key minibuffer-local-completion-map [escape] 'abort-recursive-edit)
+;;  (define-key minibuffer-local-must-match-map [escape] 'abort-recursive-edit)
+;;  (define-key minibuffer-local-isearch-map [escape] 'abort-recursive-edit)
+;;
+#+END_SRC
 
 
 * Themes
@@ -284,15 +333,17 @@ Can find others in melpa and load from there:
 
 ;;(load-theme 'zenburn t)
 ;;(load-theme 'alect-light)
-(load-theme 'alect-dark)
+;;(load-theme 'alect-dark)
 ;;(load-theme 'alect-black)
-;;(load-theme 'atom-one-dark)
+(use-package atom-one-dark-theme
+:ensure t
+:config
+(load-theme 'atom-one-dark))
 
 #+END_SRC
 
 
 * Key Bindings
-** code
 #+BEGIN_SRC emacs-lisp
 
 (global-set-key (kbd "C-?") 'hippie-expand)
@@ -311,7 +362,7 @@ Can find others in melpa and load from there:
 
 ;; Org
 (setq-default
-   org-tags-column -80
+   org-tags-column -60
    org-clock-into-drawer "LOGBOOK"
    org-log-into-drawer "LOGBOOK"
    org-startup-align-all-tables t
@@ -319,9 +370,9 @@ Can find others in melpa and load from there:
    org-footnote-auto-label 'confirm
    org-N-RET-may-split-line
    '((headline . nil) (item . nil) (table . nil))
-   org-directory "C:/Users/jeffe/Documents/org"
-   org-default-notes-file "C:/Users/jeffe/Documents/org/capture.org"
-   org-agenda-files '("C:/Users/jeffe/dev/docs")
+   org-directory "D:/Documents/org"
+   org-default-notes-file "D:/Documents/org/capture.org"
+   org-agenda-files '("D:/Documents/org")
 )
 
 (global-set-key "\C-ca" 'org-agenda)
@@ -344,9 +395,9 @@ Can find others in melpa and load from there:
    (sqlite . t)
    ))
 
-(setenv "GRAPHVIZ_DOT" "C:/Users/jeffe/dev/3rdparty/graphviz/2.38/bin/dot.exe")
+(setenv "GRAPHVIZ_DOT" "D:/dev/3rdparty/graphviz/2.38/bin/dot.exe")
 (setq org-plantuml-jar-path
-      (expand-file-name "C:/Users/jeffe/dev/3rdparty/plantuml/plantuml.jar"))
+      (expand-file-name "D:/dev/3rdparty/plantuml/plantuml.jar"))
 
 (setq org-link-abbrev-alist
       '(("bugzilla"  . "http://10.1.2.9/bugzilla/show_bug.cgi?id=")
@@ -354,31 +405,30 @@ Can find others in melpa and load from there:
         ("gmap"      . "http://maps.google.com/maps?q=%s")
         ("omap"      . "http://nominatim.openstreetmap.org/search?q=%s&polygon=1")
         ("ads"       . "http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?author=%s&db_key=AST")
-        ("ORGDIR"    . "C:/Users/jeffe/dev/orgfiles/")))
+        ("ORGDIR"    . "D:/Documents/org/")))
 
 ;; example of setting env var named “path”, by appending a new path to existing path
 (setenv "PATH"
         (concat
          "C:/Program Files (x86)/Java/jre1.8.0_161/bin" ";"
-         "C:/Users/jeffe/dev/3rdparty/graphviz/2.38/bin" ";"
+         "D:/dev/3rdparty/graphviz/2.38/bin" ";"
          (getenv "PATH")
          )
 )
 
 (setq org-capture-templates
-      '(("a" "Appointment" entry (file+headline  "D:/media/Data/Documents/org/2019.org" "Projects")
+      '(("a" "Appointment" entry (file+headline  "D:/Documents/org/2019.org" "Projects")
          "* TODO %?\n:PROPERTIES:\n\n:END:\nDEADLINE: %^T \n %i\n")
-        ("n" "Note" entry (file+headline "D:/media/Data/Documents/org/2019.org" "Notes")
+        ("n" "Note" entry (file+headline "D:/Documents/org/2019.org" "Notes")
          "* Note %?\n%T")
-        ("l" "Link" entry (file+headline "D:/media/Data/Documents/org/2019.org" "Links")
+        ("l" "Link" entry (file+headline "D:/Documents/org/2019.org" "Links")
          "* %? %^L %^g \n%T" :prepend t)
-        ("b" "Blog idea" entry (file+headline "D:/media/Data/Documents/org/2019.org" "Blog Ideas")
+        ("b" "Blog idea" entry (file+headline "D:/Documents/org/2019.org" "Blog Ideas")
          "* %?\n%T" :prepend t)
-        ("t" "To Do Item" entry (file+headline "D:/media/Data/Documents/org/2019.org" "To Do Items")
+        ("t" "To Do Item" entry (file+headline "D:/Documents/org/2019.org" "To Do Items")
          "* %?\n%T" :prepend t)
-        ("j" "Journal" entry (file+datetree "D:/media/Data/Documents/org/2019.org" "Journal")
+        ("j" "Journal" entry (file+datetree "D:/Documents/org/2019.org" "Journal")
          "* %?\nEntered on %U\n  %i\n  %a")
-         "* %?\n%i\n")))
-
+         "* %?\n%i\n"))
 
 #+END_SRC
