@@ -124,7 +124,13 @@ Set font to use in all buffers.
 #+BEGIN_SRC emacs_lisp
 (electric-pair-mode 1)
 (show-paren-mode 1)
+
+(use-package paredit
+:ensure t
+:config
+(paredit-mode 1))
 #+END_SRC
+
 ** Whitespace
 #+BEGIN_SRC emacs_lisp
 (add-hook 'before-save-hook 'whitespace-cleanup)
@@ -377,14 +383,6 @@ Find file interactively
 #+END_SRC
 
 
-* paredit
-#+BEGIN_SRC emacs-lisp
-(use-package paredit
-:ensure t
-:config
-(paredit-mode 1))
-#+END_SRC
-
 
 * company
    https://www.emacswiki.org/emacs/CompanyMode
@@ -462,16 +460,16 @@ Collection of yasnippet snippets.
 
 
 * highlight-indent-guides
-   Install package from melpa.
-   https://github.com/DarthFennec/highlight-indent-guides
-   Highlights indentation levels.
+Install package from melpa.
+https://github.com/DarthFennec/highlight-indent-guides
+Highlights indentation levels.
 #+BEGIN_SRC emacs-lisp
 (use-package highlight-indent-guides
 :ensure t
 :config
 (add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
 (setq highlight-indent-guides-method 'character)
-;; (setq highlight-indent-guides-character ?\|)
+  (setq highlight-indent-guides-character ?\|)
 )
 #+END_SRC
 
@@ -543,9 +541,10 @@ Can find others in melpa and load from there:
 ** current theme
 Improve theme loading; [[https://www.reddit.com/r/emacs/comments/4mzynd/what_emacs_theme_are_you_currently_using/d43c5cw][from reddit]]
 #+BEGIN_SRC emacs-lisp
-  (defadvice load-theme (before clear-previous-themes activate)
-    "Clear existing theme settings instead of layering them"
-    (mapc #'disable-theme custom-enabled-themes))
+(defadvice load-theme (before clear-previous-themes activate)
+  "Clear existing theme settings instead of layering them"
+  (mapc #'disable-theme custom-enabled-themes))
+
 ;;(load-theme 'zenburn t)
 ;;(load-theme 'alect-light)
 ;;(load-theme 'alect-dark)
@@ -554,6 +553,7 @@ Improve theme loading; [[https://www.reddit.com/r/emacs/comments/4mzynd/what_ema
 ;;:ensure t
 ;;:config
 ;;(load-theme 'atom-one-dark))
+
 (use-package spacemacs-theme
 :ensure t
 :config
