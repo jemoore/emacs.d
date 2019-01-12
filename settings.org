@@ -1,57 +1,134 @@
 #+Title: Emacs Configuration
 
 * Packages
-** melpa
+  Set up package archives.
+  org-elpa is mainly here for the ox-reveal package.
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/" ) t)
+(require 'package)
+(setq package-archives '(("melpa" . "http://melpa.org/packages/" )
+                         ("elpa" . "http://elpa.gnu.org/packages/")
+                         ("org" . "http://orgmode.org/elpa/")))
+(package-initialize)
 #+END_SRC
 
-** org-elpa
-This is mainly here for the ox-reveal package.
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
-#+END_SRC
 
-
-* Basic Emacs settings
+* Basic Configurations
 This section contains the basic Emacs settings to turn off menu, toolbars,
 scroll bars, turn on line numbers, etc...
 
+** Simple UI
 #+BEGIN_SRC emacs-lisp
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
+#+END_SRC
 
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-
-(setq inhibit-splash-screen t)
-(setq make-backup-files nil)
-;; line numbers interfears with git gutter
-;;(global-linum-mode 1)
-
-(fset 'yes-or-no-p 'y-or-n-p)
+** Mode Line
+#+BEGIN_SRC emacs-lisp
 (display-time-mode 1)
 (display-battery-mode 1)
 (setq column-number-mode t)
 
+(setq mode-line-format
+              (list
+               "%& %b%n"
+               " ~ "
+               "%m"
+               " ~ "
+               "%l:%c"))
+#+END_SRC
+
+** Improve Startup
+#+BEGIN_SRC emacs-lisp
+  (setq inhibit-startup-message t)
+  (setq inhibit-splash-screen t)
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+END_SRC
+
+** Disable bell
+#+BEGIN_SRC emacs-lisp
+  (setq ring-bell-function 'ignore)
+#+END_SRC
+
+** Show Line Numbers
+Displaying line numbers interferes with git gutter (and others)
+So only show line numbers in prog-mode
+#+BEGIN_SRC emacs-lisp
+;;(global-linum-mode 1)
+(add-hook 'prog-mode-hook
+	'display-line-numbers-mode)
+#+END_SRC
+
+** Yes-no-prompt
+#+BEGIN_SRC emacs-lisp
+(fset 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+** Other basic settings
+#+BEGIN_SRC emacs-lisp
 (global-hl-line-mode 1)
-(electric-pair-mode 1)
-(show-paren-mode 1)
 
-;; remember where our cursor was at last close
-(savehist-mode 1)
-
+;; keep in sync with external changes to file
 (global-auto-revert-mode 1)
-(global-visual-line-mode 1)
 
+(global-visual-line-mode 1)
+#+END_SRC
+** Fill column
+#+BEGIN_SRC emacs-lisp
+(setq fci-rule-column 80)
+#+END_SRC
+
+** Scrolling more naturally
+#+BEGIN_SRC emacs-lisp
+(pixel-scroll-mode)
+#+END_SRC
+
+** Compilation window output
+#+BEGIN_SRC emacs-lisp
+(setq compilation-window-height 15)
+#+END_SRC
+
+** Truncate lines by in code
+#+BEGIN_SRC emacs-lisp
+(add-hook 'prog-mode
+          (lambda ()
+            (setq-default truncate-lines t)))
 #+END_SRC
 
 
 * Font
 Set font to use in all buffers.
 #+BEGIN_SRC emacs-lisp
-(set-face-attribute 'default t :font "Source Code Pro-16" )
-(set-frame-font "Source Code Pro-16" nil t)
+(set-face-attribute 'default t :font "Source Code Pro-14" )
+(set-frame-font "Source Code Pro-14" nil t)
+#+END_SRC
+
+
+* Editing
+** Indentation
+#+BEGIN_SRC emacs_lisp
+(setq c-basic-offset 2)
+(setq tab-width 2)
+(setq-default indent-tabs-mode nil)
+#+END_SRC
+** History
+#+BEGIN_SRC emacs_lisp
+;; remember where our cursor was at last close
+(savehist-mode 1)
+#+END_SRC
+** Backup / Autosave
+#+BEGIN_SRC emacs_lisp
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+#+END_SRC
+** Parenthesis handling
+#+BEGIN_SRC emacs_lisp
+(electric-pair-mode 1)
+(show-paren-mode 1)
+#+END_SRC
+** Whitespace
+#+BEGIN_SRC emacs_lisp
+(add-hook 'before-save-hook 'whitespace-cleanup)
+(setq require-final-newline t)
 #+END_SRC
 
 
@@ -70,21 +147,12 @@ Find file interactively
 (setq ido-file-extension-order '("*.org" ".txt" ".csv")))
 #+END_SRC
 
-** winner mode
-'''Ctrl-c''' then right/left arrow key
-*** code
-#+BEGIN_SRC emacs-lisp
 
-(winner-mode 1)
-
-#+END_SRC
+* ido describe binding
+  This package must be manually installed from melpa.
 
 
-* Installed Packages
-** ido describe binding
-   This package must be manually installed from melpa.
-
-** ido grid mode
+* ido grid mode
 #+BEGIN_SRC emacs-lisp
 (use-package ido-grid-mode
 :ensure t
@@ -92,29 +160,165 @@ Find file interactively
 (ido-grid-mode 1))
 #+END_SRC
 
-** cycle themes
+
+* winner mode
+'''Ctrl-c''' then right/left arrow key
+#+BEGIN_SRC emacs-lisp
+(winner-mode 1)
+#+END_SRC
+
+
+* cycle themes
 #+BEGIN_SRC emacs-lisp
 (setq cycle-themes-theme-list
-'(atom-one-dark alect-themes zenburn))
+'(spacemacs-dark atom-one-dark alect-themes zenburn))
 (use-package cycle-themes
 :ensure t
 :config
 (cycle-themes-mode 1))
 #+END_SRC
 
-** org
-#+BEGIN_SRC emacs-lisp
-(use-package org
-:ensure t
-:pin org)
 
-(use-package org-bullets
-:ensure t
-:config
-(add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
+* org
+#+BEGIN_SRC emacs-lisp
+  (use-package org
+  :ensure t
+  :pin org)
+
+  (use-package org-bullets
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
 #+END_SRC
 
-** ivy + swiper + counsel
+
+* org-mode customizations
+#+BEGIN_SRC emacs-lisp
+
+;; for use with EVIL mode
+;;(evil-define-key 'normal org-mode-map (kbd "TAB") 'org-cycle)
+
+;; difficulty getting reveal to work
+(setq org-enable-reveal-js-support t)
+
+;; Org
+(setq-default
+   org-tags-column -60
+   org-clock-into-drawer "LOGBOOK"
+   org-log-into-drawer "LOGBOOK"
+   org-startup-align-all-tables t
+   org-footnote-auto-adjust t
+   org-footnote-auto-label 'confirm
+   org-N-RET-may-split-line
+   '((headline . nil) (item . nil) (table . nil))
+   org-directory "D:/Documents/org"
+   org-default-notes-file "D:/Documents/org/capture.org"
+   org-agenda-files '("D:/Documents/org")
+)
+
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cc" 'org-capture)
+
+;; display images
+(setq org-startup-with-inline-images t)
+(add-hook
+ 'org-babel-after-execute-hook
+ (lambda ()
+   (when org-inline-image-overlays
+     (org-redisplay-inline-images))))
+
+
+(setq org-confirm-babel-evaluate nil
+      org-src-fontify-natively t
+      org-src-tab-acts-natively t
+      org-hide-emphasis-markers t
+      org-edit-src-content-indentation 0)
+
+;; active Org-babel languages
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '(;; other Babel languages
+   (ditaa . t)
+   (dot . t)
+   (emacs-lisp . t)
+   (js .t)
+   (plantuml . t)
+   (python . t)
+   (sqlite . t)
+   ))
+
+(add-to-list 'org-src-lang-modes
+             '("html" . web))
+
+;; publish 'web' src as is
+(defun org-babel-execute:web (body params)
+  body)
+
+(setenv "GRAPHVIZ_DOT" "D:/dev/3rdparty/graphviz/2.38/bin/dot.exe")
+(setq org-plantuml-jar-path
+      (expand-file-name "D:/dev/3rdparty/plantuml/plantuml.jar"))
+
+(setq org-link-abbrev-alist
+      '(("bugzilla"  . "http://10.1.2.9/bugzilla/show_bug.cgi?id=")
+	("google"    . "http://www.google.com/search?q=")
+	("gmap"      . "http://maps.google.com/maps?q=%s")
+	("omap"      . "http://nominatim.openstreetmap.org/search?q=%s&polygon=1")
+	("ads"       . "http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?author=%s&db_key=AST")
+	("ORGDIR"    . "D:/Documents/org/")))
+
+;; example of setting env var named “path”, by appending a new path to existing path
+(setenv "PATH"
+	(concat
+	 "C:/Program Files (x86)/Java/jre1.8.0_161/bin" ";"
+	 "D:/dev/3rdparty/graphviz/2.38/bin" ";"
+	 (getenv "PATH")
+	 )
+)
+
+(setq org-capture-templates
+      '(("a" "Appointment" entry (file+headline  "D:/Documents/org/2019.org" "Projects")
+	 "* TODO %?\n:PROPERTIES:\n\n:END:\nDEADLINE: %^T \n %i\n")
+	("n" "Note" entry (file+headline "D:/Documents/org/2019.org" "Notes")
+	 "* Note %?\n%T")
+	("l" "Link" entry (file+headline "D:/Documents/org/2019.org" "Links")
+	 "* %? %^L %^g \n%T" :prepend t)
+	("b" "Blog idea" entry (file+headline "D:/Documents/org/2019.org" "Blog Ideas")
+	 "* %?\n%T" :prepend t)
+	("t" "To Do Item" entry (file+headline "D:/Documents/org/2019.org" "To Do Items")
+	 "* %?\n%T" :prepend t)
+	("j" "Journal" entry (file+datetree "D:/Documents/org/2019.org" "Journal")
+	 "* %?\nEntered on %U\n  %i\n  %a")
+	 "* %?\n%i\n"))
+
+#+END_SRC
+
+
+* PDF Tools
+#+BEGIN_SRC emacs-lisp
+  (use-package pdf-tools
+   :ensure t
+   :pin manual ;; manually update
+   :config
+   ;; initialise
+   (pdf-tools-install)
+   ;; open pdfs scaled to fit page
+   (setq-default pdf-view-display-size 'fit-page)
+   ;; automatically annotate highlights
+   (setq pdf-annot-activate-created-annotations t)
+   ;; use normal isearch
+   (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+   ;; turn off cua so copy works
+   (add-hook 'pdf-view-mode-hook (lambda () (cua-mode 0)))
+   ;; more fine-grained zooming
+   (setq pdf-view-resize-factor 1.1)
+   ;; keyboard shortcuts
+   (define-key pdf-view-mode-map (kbd "h") 'pdf-annot-add-highlight-markup-annotation)
+   (define-key pdf-view-mode-map (kbd "t") 'pdf-annot-add-text-annotation)
+   (define-key pdf-view-mode-map (kbd "D") 'pdf-annot-delete))
+#+END_SRC
+
+
+* ivy + swiper + counsel
    Install counsel package from melpa which will install swiper and ivy as
    dependencies.
 #+BEGIN_SRC emacs-lisp
@@ -144,7 +348,8 @@ Find file interactively
 (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
 #+END_SRC
 
-** magit
+
+* magit
    Install magit from melpa.
 #+BEGIN_SRC emacs-lisp
 (use-package magit
@@ -160,7 +365,8 @@ Find file interactively
 (global-git-gutter-mode +1))
 #+END_SRC
 
-** iedit
+
+* iedit
    https://www.emacswiki.org/emacs/Iedit
    Use '''Ctrl-;''' over a variable then all edits
    to that variable will change all instances of the variable. Can limit to an
@@ -170,7 +376,8 @@ Find file interactively
 (use-package iedit :ensure t)
 #+END_SRC
 
-** paredit
+
+* paredit
 #+BEGIN_SRC emacs-lisp
 (use-package paredit
 :ensure t
@@ -178,7 +385,8 @@ Find file interactively
 (paredit-mode 1))
 #+END_SRC
 
-** company
+
+* company
    https://www.emacswiki.org/emacs/CompanyMode
 #+BEGIN_SRC emacs-lisp
 (use-package company
@@ -190,7 +398,7 @@ Find file interactively
 (setq company-idle-delay 0))
 #+END_SRC
 
-** company-quickhelp
+* company-quickhelp
 #+BEGIN_SRC emacs-lisp
 (use-package company-quickhelp
 :ensure t
@@ -199,59 +407,61 @@ Find file interactively
 (setq company-quickhelp-delay 0))
 #+END_SRC
 
-** anaconda-mode
+* anaconda-mode
    This is a dependency for company-anaconda, so will be installed by
    company-anaconda
 #+BEGIN_SRC emacs-lisp
 (add-hook 'python-mode-hook 'anaconda-mode)
 #+END_SRC
 
-** company-anaconda
+* company-anaconda
 #+BEGIN_SRC emacs-lisp
 (use-package rx
 :ensure t)
 (add-to-list 'company-backends 'company-anaconda)
 #+END_SRC
 
-** yasnippet
+
+* yasnippet
 #+BEGIN_SRC emacs-lisp
-;;;; specify folder containing personal snippets. 
-;;(add-to-list 'load-path
-;;             "~/.emacs.d/plugins/yasnippet")
-;;(use-package yasnippet
-;;:ensure t
-;;:config
-;;(yas-global-mode 1))
+;; specify folder containing personal snippets. 
+(add-to-list 'load-path
+             "~/.emacs.d/plugins/yasnippet")
+(use-package yasnippet
+:ensure t
+:config
+(yas-global-mode 1))
 ;;
-;;;; follow prevents interference with company mode
-;;;; see 'Yasnippet integration' section of
-;;;; https://www.emacswiki.org/emacs/CompanyMode
-;;(defun check-expansion ()
-;;  (save-excursion
-;;    (if (looking-at "\\_>") t
-;;      (backward-char 1)
-;;      (if (looking-at "\\.") t
-;;        (backward-char 1)
-;;        (if (looking-at "->") t nil)))))
-;; (defun do-yas-expand ()
-;;  (let ((yas/fallback-behavior 'return-nil))
-;;    (yas/expand)))
-;; (defun tab-indent-or-complete ()
-;;  (interactive)
-;;  (if (minibufferp)
-;;      (minibuffer-complete)
-;;    (if (or (not yas/minor-mode)
-;;            (null (do-yas-expand)))
-;;        (if (check-expansion)
-;;            (company-complete-common)
-;;          (indent-for-tab-command)))))
-;; (global-set-key [tab] 'tab-indent-or-complete)
+;; follow prevents interference with company mode
+;; see 'Yasnippet integration' section of
+;; https://www.emacswiki.org/emacs/CompanyMode
+(defun check-expansion ()
+  (save-excursion
+    (if (looking-at "\\_>") t
+      (backward-char 1)
+      (if (looking-at "\\.") t
+        (backward-char 1)
+        (if (looking-at "->") t nil)))))
+ (defun do-yas-expand ()
+  (let ((yas/fallback-behavior 'return-nil))
+    (yas/expand)))
+ (defun tab-indent-or-complete ()
+  (interactive)
+  (if (minibufferp)
+      (minibuffer-complete)
+    (if (or (not yas/minor-mode)
+            (null (do-yas-expand)))
+        (if (check-expansion)
+            (company-complete-common)
+          (indent-for-tab-command)))))
+ (global-set-key [tab] 'tab-indent-or-complete)
 #+END_SRC
 
-** yasnippet-snippets
- Collection of yasnippet snippets.
+* yasnippet-snippets
+Collection of yasnippet snippets.
 
-** highlight-indent-guides
+
+* highlight-indent-guides
    Install package from melpa.
    https://github.com/DarthFennec/highlight-indent-guides
    Highlights indentation levels.
@@ -265,17 +475,19 @@ Find file interactively
 )
 #+END_SRC
 
-** ox-reveal
+
+* ox-reveal
    Must add [[org-elpa]] before package can be installed.
 #+BEGIN_SRC emacs-lisp
-;;(use-package ox-reveal
-;;:ensure t
-;;:pin org
-;;)
-;;(setq org-reveal-root "file:///D:/dev/3rdparty/revealjs")
+(use-package ox-reveal
+:ensure t
+:pin org
+)
+(setq org-reveal-root "file:///D:/dev/3rdparty/revealjs")
 #+END_SRC
 
-** evil
+
+* evil
 Configuration from: https://github.com/bradwright/emacs.d/blob/master/setup-evil.el
 #+BEGIN_SRC emacs-lisp 
 
@@ -329,19 +541,45 @@ Can find others in melpa and load from there:
  - cycle-themes
    - see config in Installed Packages [[cycle themes]] section
 ** current theme
+Improve theme loading; [[https://www.reddit.com/r/emacs/comments/4mzynd/what_emacs_theme_are_you_currently_using/d43c5cw][from reddit]]
 #+BEGIN_SRC emacs-lisp
-
+  (defadvice load-theme (before clear-previous-themes activate)
+    "Clear existing theme settings instead of layering them"
+    (mapc #'disable-theme custom-enabled-themes))
 ;;(load-theme 'zenburn t)
 ;;(load-theme 'alect-light)
 ;;(load-theme 'alect-dark)
 ;;(load-theme 'alect-black)
-(use-package atom-one-dark-theme
+;;(use-package atom-one-dark-theme
+;;:ensure t
+;;:config
+;;(load-theme 'atom-one-dark))
+(use-package spacemacs-theme
 :ensure t
 :config
-(load-theme 'atom-one-dark))
+(load-theme 'spacemacs-dark-theme))
 
 #+END_SRC
 
+
+* Language Specific
+** Web Mode
+#+BEGIN_SRC emacs-lisp 
+(setq web-mode-markup-indent-offset 2)
+(setq web-mode-css-indent-offset 2)
+(setq web-mode-code-indent-offset 2)
+
+(setq web-mode-style-padding 2)
+(setq web-mode-script-padding 2)
+
+(setq web-mode-auto-quote-style 2) ; use single quotes
+#+END_SRC
+
+* GDB
+Show me all the windows
+#+BEGIN_SRC emacs-lisp 
+(setq gdb-many-windows 't)
+#+END_SRC
 
 * Key Bindings
 #+BEGIN_SRC emacs-lisp
@@ -356,79 +594,3 @@ Can find others in melpa and load from there:
 #+END_SRC
 
 
-* org-mode customizations
-** code
-#+BEGIN_SRC emacs-lisp
-
-;; Org
-(setq-default
-   org-tags-column -60
-   org-clock-into-drawer "LOGBOOK"
-   org-log-into-drawer "LOGBOOK"
-   org-startup-align-all-tables t
-   org-footnote-auto-adjust t
-   org-footnote-auto-label 'confirm
-   org-N-RET-may-split-line
-   '((headline . nil) (item . nil) (table . nil))
-   org-directory "D:/Documents/org"
-   org-default-notes-file "D:/Documents/org/capture.org"
-   org-agenda-files '("D:/Documents/org")
-)
-
-(global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cc" 'org-capture)
-
-(setq org-confirm-babel-evaluate nil
-      org-src-fontify-natively t
-      org-src-tab-acts-natively t)
-
-;; active Org-babel languages
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '(;; other Babel languages
-   (ditaa . t)
-   (dot . t)
-   (emacs-lisp . t)
-   (js .t)
-   (plantuml . t)
-   (python . t)
-   (sqlite . t)
-   ))
-
-(setenv "GRAPHVIZ_DOT" "D:/dev/3rdparty/graphviz/2.38/bin/dot.exe")
-(setq org-plantuml-jar-path
-      (expand-file-name "D:/dev/3rdparty/plantuml/plantuml.jar"))
-
-(setq org-link-abbrev-alist
-      '(("bugzilla"  . "http://10.1.2.9/bugzilla/show_bug.cgi?id=")
-        ("google"    . "http://www.google.com/search?q=")
-        ("gmap"      . "http://maps.google.com/maps?q=%s")
-        ("omap"      . "http://nominatim.openstreetmap.org/search?q=%s&polygon=1")
-        ("ads"       . "http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?author=%s&db_key=AST")
-        ("ORGDIR"    . "D:/Documents/org/")))
-
-;; example of setting env var named “path”, by appending a new path to existing path
-(setenv "PATH"
-        (concat
-         "C:/Program Files (x86)/Java/jre1.8.0_161/bin" ";"
-         "D:/dev/3rdparty/graphviz/2.38/bin" ";"
-         (getenv "PATH")
-         )
-)
-
-(setq org-capture-templates
-      '(("a" "Appointment" entry (file+headline  "D:/Documents/org/2019.org" "Projects")
-         "* TODO %?\n:PROPERTIES:\n\n:END:\nDEADLINE: %^T \n %i\n")
-        ("n" "Note" entry (file+headline "D:/Documents/org/2019.org" "Notes")
-         "* Note %?\n%T")
-        ("l" "Link" entry (file+headline "D:/Documents/org/2019.org" "Links")
-         "* %? %^L %^g \n%T" :prepend t)
-        ("b" "Blog idea" entry (file+headline "D:/Documents/org/2019.org" "Blog Ideas")
-         "* %?\n%T" :prepend t)
-        ("t" "To Do Item" entry (file+headline "D:/Documents/org/2019.org" "To Do Items")
-         "* %?\n%T" :prepend t)
-        ("j" "Journal" entry (file+datetree "D:/Documents/org/2019.org" "Journal")
-         "* %?\nEntered on %U\n  %i\n  %a")
-         "* %?\n%i\n"))
-
-#+END_SRC
