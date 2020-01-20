@@ -3,4 +3,7 @@ history
 ido.last
 recentf
 settings.el
-
+prescient-items
+*~
+transient/
+projectile-bookmarks.eld

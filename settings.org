@@ -1,5 +1,18 @@
 #+Title: Emacs Configuration
 
+* Overview
+** Introduction
+   This org document contains my emacs configuration.  Each section contains a
+code blocks wrappted in **#+begin_src** and **#+end-src** tags.  Using org-babel,
+the code blocks are put into a single file, settings.el, and loaded by the
+**init.el** file.
+
+When changes are made to this file it is necessary to remove the settings.el
+file so that it will be regenerated from this source file.
+
+** Resources
+[[https://www.emacswiki.org/emacs/SiteMap][Emacs Wiki]]
+[[https://gitlab.com/protesilaos/dotfiles/blob/master/emacs/.emacs.d/emacs-init.org][Protesilaos Setup]]
 * Packages
   Set up package archives.
   org-elpa is mainly here for the ox-reveal package.
@@ -10,7 +23,6 @@
                          ("org" . "http://orgmode.org/elpa/")))
 (package-initialize)
 #+END_SRC
-
 
 * Basic Configurations
 This section contains the basic Emacs settings to turn off menu, toolbars,
@@ -38,6 +50,18 @@ scroll bars, turn on line numbers, etc...
                "%l:%c"))
 #+END_SRC
 
+** custom.el
+#+BEGIN_SRC emacs-lisp
+(use-package cus-edit
+  :config
+  (setq custom-file "~/.emacs.d/custom.el")
+
+  (unless (file-exists-p custom-file)
+    (write-region "" nil custom-file))
+
+  (load custom-file))
+#+END_SRC
+
 ** Improve Startup
 #+BEGIN_SRC emacs-lisp
   (setq inhibit-startup-message t)
@@ -56,7 +80,7 @@ So only show line numbers in prog-mode
 #+BEGIN_SRC emacs-lisp
 ;;(global-linum-mode 1)
 (add-hook 'prog-mode-hook
-	'display-line-numbers-mode)
+        'display-line-numbers-mode)
 #+END_SRC
 
 ** Yes-no-prompt
@@ -94,34 +118,43 @@ So only show line numbers in prog-mode
             (setq-default truncate-lines t)))
 #+END_SRC
 
-
+* Delight
+#+BEGIN_SRC emacs-lisp
+(use-package delight
+  :ensure t
+  :after use-package)
+#+END_SRC
 * Font
 Set font to use in all buffers.
 #+BEGIN_SRC emacs-lisp
-(set-face-attribute 'default t :font "Source Code Pro-14" )
-(set-frame-font "Source Code Pro-14" nil t)
+(set-face-attribute 'default nil
+                    :family "Iosevka"
+                    :height 140
+                    :weight 'normal
+                    :width 'normal)
+(copy-face 'default 'fixed-pitch)
+(set-frame-font "Iosevka" nil t)
 #+END_SRC
-
 
 * Editing
 ** Indentation
-#+BEGIN_SRC emacs_lisp
+#+BEGIN_SRC emacs-lisp
 (setq c-basic-offset 2)
 (setq tab-width 2)
 (setq-default indent-tabs-mode nil)
 #+END_SRC
 ** History
-#+BEGIN_SRC emacs_lisp
+#+BEGIN_SRC emacs-lisp
 ;; remember where our cursor was at last close
 (savehist-mode 1)
 #+END_SRC
 ** Backup / Autosave
-#+BEGIN_SRC emacs_lisp
+#+BEGIN_SRC emacs-lisp
 (setq make-backup-files nil)
 (setq auto-save-default nil)
 #+END_SRC
 ** Parenthesis handling
-#+BEGIN_SRC emacs_lisp
+#+BEGIN_SRC emacs-lisp
 (electric-pair-mode 1)
 (show-paren-mode 1)
 
@@ -132,11 +165,10 @@ Set font to use in all buffers.
 #+END_SRC
 
 ** Whitespace
-#+BEGIN_SRC emacs_lisp
+#+BEGIN_SRC emacs-lisp
 (add-hook 'before-save-hook 'whitespace-cleanup)
 (setq require-final-newline t)
 #+END_SRC
-
 
 * ido
 Interactive DO.
@@ -153,10 +185,8 @@ Find file interactively
 (setq ido-file-extension-order '("*.org" ".txt" ".csv")))
 #+END_SRC
 
-
 * ido describe binding
   This package must be manually installed from melpa.
-
 
 * ido grid mode
 #+BEGIN_SRC emacs-lisp
@@ -166,37 +196,51 @@ Find file interactively
 (ido-grid-mode 1))
 #+END_SRC
 
-
 * winner mode
 '''Ctrl-c''' then right/left arrow key
 #+BEGIN_SRC emacs-lisp
-(winner-mode 1)
+(use-package winner
+  :hook (after-init . winner-mode)
+  :bind (("<s-right>" . winner-redo)
+         ("<s-left>" . winner-undo)))
 #+END_SRC
 
-
-* cycle themes
+* Windows
+** ace-windows
 #+BEGIN_SRC emacs-lisp
-(setq cycle-themes-theme-list
-'(spacemacs-dark atom-one-dark alect-themes zenburn))
-(use-package cycle-themes
-:ensure t
-:config
-(cycle-themes-mode 1))
+(use-package ace-window
+  :ensure t
+  :config
+  (setq aw-keys '(?h ?j ?k ?l ?y ?u ?i ?o ?p))
+  (setq aw-scope 'frame)
+  (setq aw-dispatch-always t)
+  (setq aw-dispatch-alist
+        '((?s aw-swap-window "Swap Windows")
+          (?2 aw-split-window-vert "Split Window Vertically")
+          (?3 aw-split-window-horz "Split Window Horizontally")
+          (?? aw-show-dispatch-help)))
+  (setq aw-minibuffer-flag t)
+  (setq aw-ignore-current nil)
+  (setq aw-display-mode-overlay t)
+  (setq aw-background t)
+
+  (ace-window-display-mode -1))
+  ;;:bind (("s-a" . ace-window)))
 #+END_SRC
-
-
 * org
 #+BEGIN_SRC emacs-lisp
-  (use-package org
+(use-package org
   :ensure t
   :pin org)
 
-  (use-package org-bullets
+(use-package org-bullets
   :ensure t
   :config
   (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
-#+END_SRC
 
+(use-package org-noter
+  :ensure t)
+#+END_SRC
 
 * org-mode customizations
 #+BEGIN_SRC emacs-lisp
@@ -217,9 +261,24 @@ Find file interactively
    org-footnote-auto-label 'confirm
    org-N-RET-may-split-line
    '((headline . nil) (item . nil) (table . nil))
-   org-directory "D:/Documents/org"
-   org-default-notes-file "D:/Documents/org/capture.org"
-   org-agenda-files '("D:/Documents/org")
+   org-directory "/media/Data/Documents/org"
+   org-default-notes-file "/media/Data/Documents/org/capture.org"
+   org-agenda-files (directory-files-recursively "/media/Data/Documents/org/" "\.org$")
+   ;; org-startup-indented t
+   org-pretty-entities t
+   ;; show actually italicized text instead of /italicized text/
+   org-hide-emphasis-markers t
+   org-agenda-block-separator ""
+   org-fontify-whole-heading-line t
+   org-fontify-done-headline t
+   org-fontify-quote-and-verse-blocks t
+   ;; keeping the following for reference
+   ;; Ignore scheduled tasks in task list view (SPC m t)
+   ;; org-agenda-todo-ignore-scheduled t
+   ;; org-agenda-todo-ignore-deadlines t
+   ;; Skip finished items
+   ;; org-agenda-skip-deadline-if-done t
+   ;; org-agenda-skip-scheduled-if-done t
 )
 
 (global-set-key "\C-ca" 'org-agenda)
@@ -266,111 +325,319 @@ Find file interactively
 
 (setq org-link-abbrev-alist
       '(("bugzilla"  . "http://10.1.2.9/bugzilla/show_bug.cgi?id=")
-	("google"    . "http://www.google.com/search?q=")
-	("gmap"      . "http://maps.google.com/maps?q=%s")
-	("omap"      . "http://nominatim.openstreetmap.org/search?q=%s&polygon=1")
-	("ads"       . "http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?author=%s&db_key=AST")
-	("ORGDIR"    . "D:/Documents/org/")))
+        ("google"    . "http://www.google.com/search?q=")
+        ("gmap"      . "http://maps.google.com/maps?q=%s")
+        ("omap"      . "http://nominatim.openstreetmap.org/search?q=%s&polygon=1")
+        ("ads"       . "http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?author=%s&db_key=AST")
+        ("ORGDIR"    . "D:/Documents/org/")))
 
 ;; example of setting env var named “path”, by appending a new path to existing path
 (setenv "PATH"
-	(concat
-	 "C:/Program Files (x86)/Java/jre1.8.0_161/bin" ";"
-	 "D:/dev/3rdparty/graphviz/2.38/bin" ";"
-	 (getenv "PATH")
-	 )
+        (concat
+         "C:/Program Files (x86)/Java/jre1.8.0_161/bin" ";"
+         "D:/dev/3rdparty/graphviz/2.38/bin" ";"
+         (getenv "PATH")
+         )
 )
 
 (setq org-capture-templates
       '(("a" "Appointment" entry (file+headline  "D:/Documents/org/2019.org" "Projects")
-	 "* TODO %?\n:PROPERTIES:\n\n:END:\nDEADLINE: %^T \n %i\n")
-	("n" "Note" entry (file+headline "D:/Documents/org/2019.org" "Notes")
-	 "* Note %?\n%T")
-	("l" "Link" entry (file+headline "D:/Documents/org/2019.org" "Links")
-	 "* %? %^L %^g \n%T" :prepend t)
-	("b" "Blog idea" entry (file+headline "D:/Documents/org/2019.org" "Blog Ideas")
-	 "* %?\n%T" :prepend t)
-	("t" "To Do Item" entry (file+headline "D:/Documents/org/2019.org" "To Do Items")
-	 "* %?\n%T" :prepend t)
-	("j" "Journal" entry (file+datetree "D:/Documents/org/2019.org" "Journal")
-	 "* %?\nEntered on %U\n  %i\n  %a")
-	 "* %?\n%i\n"))
+         "* TODO %?\n:PROPERTIES:\n\n:END:\nDEADLINE: %^T \n %i\n")
+        ("n" "Note" entry (file+headline "D:/Documents/org/2019.org" "Notes")
+         "* Note %?\n%T")
+        ("l" "Link" entry (file+headline "D:/Documents/org/2019.org" "Links")
+         "* %? %^L %^g \n%T" :prepend t)
+        ("b" "Blog idea" entry (file+headline "D:/Documents/org/2019.org" "Blog Ideas")
+         "* %?\n%T" :prepend t)
+        ("t" "To Do Item" entry (file+headline "D:/Documents/org/2019.org" "To Do Items")
+         "* %?\n%T" :prepend t)
+        ("j" "Journal" entry (file+datetree "D:/Documents/org/2019.org" "Journal")
+         "* %?\nEntered on %U\n  %i\n  %a")
+         "* %?\n%i\n"))
 
 #+END_SRC
-
 
 * PDF Tools
 #+BEGIN_SRC emacs-lisp
-  (use-package pdf-tools
-   :ensure t
-   :pin manual ;; manually update
-   :config
-   ;; initialise
-   (pdf-tools-install)
-   ;; open pdfs scaled to fit page
-   (setq-default pdf-view-display-size 'fit-page)
-   ;; automatically annotate highlights
-   (setq pdf-annot-activate-created-annotations t)
-   ;; use normal isearch
-   (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
-   ;; turn off cua so copy works
-   (add-hook 'pdf-view-mode-hook (lambda () (cua-mode 0)))
-   ;; more fine-grained zooming
-   (setq pdf-view-resize-factor 1.1)
-   ;; keyboard shortcuts
-   (define-key pdf-view-mode-map (kbd "h") 'pdf-annot-add-highlight-markup-annotation)
-   (define-key pdf-view-mode-map (kbd "t") 'pdf-annot-add-text-annotation)
-   (define-key pdf-view-mode-map (kbd "D") 'pdf-annot-delete))
+(use-package pdf-tools
+ :disabled
+ :ensure t
+ :pin manual ;; manually update
+ :config
+ ;; initialise
+ (pdf-tools-install)
+ ;; open pdfs scaled to fit page
+ (setq-default pdf-view-display-size 'fit-page)
+ ;; automatically annotate highlights
+ (setq pdf-annot-activate-created-annotations t)
+ ;; use normal isearch
+ (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+ ;; turn off cua so copy works
+ (add-hook 'pdf-view-mode-hook (lambda () (cua-mode 0)))
+ ;; more fine-grained zooming
+ (setq pdf-view-resize-factor 1.1)
+ ;; keyboard shortcuts
+ (define-key pdf-view-mode-map (kbd "h") 'pdf-annot-add-highlight-markup-annotation)
+ (define-key pdf-view-mode-map (kbd "t") 'pdf-annot-add-text-annotation)
+ (define-key pdf-view-mode-map (kbd "D") 'pdf-annot-delete))
 #+END_SRC
 
-
-* ivy + swiper + counsel
-   Install counsel package from melpa which will install swiper and ivy as
-   dependencies.
+* ivy + counsel + swiper
+** ivy
 #+BEGIN_SRC emacs-lisp
-;; from https://github.com/abo-abo/swiper
-(use-package counsel :ensure t)
+(use-package ivy
+  :ensure t
+  :delight
+  :config
+  (setq ivy-count-format "(%d/%d) ")
+  (setq ivy-height-alist '((t lambda (_caller) (/ (window-height) 4))))
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-wrap nil)
+  (setq ivy-re-builders-alist
+        '((counsel-M-x . ivy--regex-fuzzy)
+          (ivy-switch-buffer . ivy--regex-fuzzy)
+          (ivy-switch-buffer-other-window . ivy--regex-fuzzy)
+          (counsel-rg . ivy--regex-or-literal)
+          (t . ivy--regex-plus)))
+  (setq ivy-display-style 'fancy)
+  (setq ivy-use-selectable-prompt t)
+  (setq ivy-fixed-height-minibuffer nil)
+  (setq ivy-initial-inputs-alist
+        '((counsel-M-x . "^")
+          (ivy-switch-buffer . "^")
+          (ivy-switch-buffer-other-window . "^")
+          (counsel-describe-function . "^")
+          (counsel-describe-variable . "^")
+          (t . "")))
 
-(ivy-mode 1)
-(setq ivy-use-virtual-buffers t)
-(setq enable-recursive-minibuffers t)
-(global-set-key "\C-s" 'swiper)
-(global-set-key (kbd "C-c C-r") 'ivy-resume)
-(global-set-key (kbd "<f6>") 'ivy-resume)
-(global-set-key (kbd "M-x") 'counsel-M-x)
-;;(global-set-key (kbd "C-x C-f") 'counsel-find-file)
-;; I added counsel-yank-pop binding
-(global-set-key (kbd "C-y") 'counsel-yank-pop)
-(global-set-key (kbd "<f1> f") 'counsel-describe-function)
-(global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-(global-set-key (kbd "<f1> l") 'counsel-find-library)
-(global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-(global-set-key (kbd "<f2> u") 'counsel-unicode-char)
-(global-set-key (kbd "C-c g") 'counsel-git)
-(global-set-key (kbd "C-c j") 'counsel-git-grep)
-(global-set-key (kbd "C-c k") 'counsel-ag)
-(global-set-key (kbd "C-x l") 'counsel-locate)
-(global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
-(define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
+  (ivy-set-occur 'counsel-fzf 'counsel-fzf-occur)
+  (ivy-set-occur 'counsel-rg 'counsel-ag-occur)
+  (ivy-set-occur 'ivy-switch-buffer 'ivy-switch-buffer-occur)
+  (ivy-set-occur 'swiper 'swiper-occur)
+  (ivy-set-occur 'swiper-isearch 'swiper-occur)
+  (ivy-set-occur 'swiper-multi 'counsel-ag-occur)
+  :hook ((after-init . ivy-mode)
+         (ivy-occur-mode . hl-line-mode))
+  :bind (("<s-up>" . ivy-push-view)
+         ("<s-down>" . ivy-switch-view)
+         ("C-S-r" . ivy-resume)
+         :map ivy-occur-mode-map
+         ("f" . forward-char)
+         ("b" . backward-char)
+         ("n" . ivy-occur-next-line)
+         ("p" . ivy-occur-previous-line)
+         ("<C-return>" . ivy-occur-press)))
 #+END_SRC
 
+** prescient
+#+BEGIN_SRC emacs-lisp
+(use-package prescient
+  :ensure t
+  :config
+  (setq prescient-history-length 200)
+  (setq prescient-save-file "~/.emacs.d/prescient-items")
+  (setq prescient-filter-method '(literal regexp))
+  (prescient-persist-mode 1))
 
+(use-package ivy-prescient
+  :ensure t
+  :after (prescient ivy)
+  :config
+  (setq ivy-prescient-sort-commands
+        '(:not counsel-grep
+               counsel-rg
+               counsel-switch-buffer
+               ivy-switch-buffer
+               swiper
+               swiper-multi))
+  (setq ivy-prescient-retain-classic-highlighting t)
+  (setq ivy-prescient-enable-filtering nil)
+  (setq ivy-prescient-enable-sorting t)
+  (ivy-prescient-mode 1))
+#+END_SRC
+
+** Counsel
+#+BEGIN_SRC emacs-lisp
+(use-package counsel
+  :ensure t
+  :after ivy
+  :config
+  (setq counsel-yank-pop-preselect-last t)
+  (setq counsel-yank-pop-separator "\n—————————\n")
+  (setq counsel-rg-base-command
+        "rg -SHn --no-heading --color never --no-follow --hidden %s")
+  (setq counsel-find-file-occur-cmd; TODO Simplify this
+        "ls -a | grep -i -E '%s' | tr '\\n' '\\0' | xargs -0 ls -d --group-directories-first")
+
+  (defun prot/counsel-fzf-rg-files (&optional input dir)
+    "Run `fzf' in tandem with `ripgrep' to find files in the
+present directory.  If invoked from inside a version-controlled
+repository, then the corresponding root is used instead."
+    (interactive)
+    (let* ((process-environment
+            (cons (concat "FZF_DEFAULT_COMMAND=rg -Sn --color never --files --no-follow --hidden")
+                  process-environment))
+           (vc (vc-root-dir)))
+      (if dir
+          (counsel-fzf input dir)
+        (if (eq vc nil)
+            (counsel-fzf input default-directory)
+          (counsel-fzf input vc)))))
+
+  (defun prot/counsel-fzf-dir (arg)
+    "Specify root directory for `counsel-fzf'."
+    (prot/counsel-fzf-rg-files ivy-text
+                               (read-directory-name
+                                (concat (car (split-string counsel-fzf-cmd))
+                                        " in directory: "))))
+
+  (defun prot/counsel-rg-dir (arg)
+    "Specify root directory for `counsel-rg'."
+    (let ((current-prefix-arg '(4)))
+      (counsel-rg ivy-text nil "")))
+
+  ;; TODO generalise for all relevant file/buffer counsel-*?
+  (defun prot/counsel-fzf-ace-window (arg)
+    "Use `ace-window' on `prot/counsel-fzf-rg-files' candidate."
+    (ace-window t)
+    (let ((default-directory (if (eq (vc-root-dir) nil)
+                                 counsel--fzf-dir
+                               (vc-root-dir))))
+      (if (> (length (aw-window-list)) 1)
+          (find-file arg)
+        (find-file-other-window arg))
+      (balance-windows (current-buffer))))
+
+  ;; Pass functions as appropriate Ivy actions (accessed via M-o)
+  (ivy-add-actions
+   'counsel-fzf
+   '(("r" prot/counsel-fzf-dir "change root directory")
+     ("g" prot/counsel-rg-dir "use ripgrep in root directory")
+     ("a" prot/counsel-fzf-ace-window "ace-window switch")))
+
+  (ivy-add-actions
+   'counsel-rg
+   '(("r" prot/counsel-rg-dir "change root directory")
+     ("z" prot/counsel-fzf-dir "find file with fzf in root directory")))
+
+  (ivy-add-actions
+   'counsel-find-file
+   '(("g" prot/counsel-rg-dir "use ripgrep in root directory")
+     ("z" prot/counsel-fzf-dir "find file with fzf in root directory")))
+
+  ;; Remove commands that only work with key bindings
+  (put 'counsel-find-symbol 'no-counsel-M-x t)
+  :bind (("M-x" . counsel-M-x)
+         ("C-x C-f" . counsel-find-file)
+         ("s-f" . counsel-find-file)
+         ("s-F" . find-file-other-window)
+         ("C-x b" . ivy-switch-buffer)
+         ("s-b" . ivy-switch-buffer)
+         ("C-x B" . counsel-switch-buffer-other-window)
+         ("s-B" . counsel-switch-buffer-other-window)
+         ("C-x d" . counsel-dired)
+         ("s-d" . counsel-dired)
+         ("s-D" . dired-other-window)
+         ("C-x C-r" . counsel-recentf)
+         ("s-r" . counsel-recentf)
+         ("s-y" . counsel-yank-pop)
+         ("C-h f" . counsel-describe-function)
+         ("C-h v" . counsel-describe-variable)
+         ("M-s r" . counsel-rg)
+         ("M-s g" . counsel-git-grep)
+         ("M-s l" . counsel-find-library)
+         ("M-s z" . prot/counsel-fzf-rg-files)
+         :map ivy-minibuffer-map
+         ("C-r" . counsel-minibuffer-history)
+         ("s-y" . ivy-next-line)        ; Avoid 2× `counsel-yank-pop'
+         ("C-SPC" . ivy-restrict-to-matches)))
+#+END_SRC
+** projectile
+#+BEGIN_SRC emacs-lisp
+(use-package projectile
+  :ensure t
+  ;; :delight '(:eval (concat " " (projectile-project-name)))
+  :delight
+  :config
+  (setq projectile-project-search-path '("~/Git/Projects/"))
+  (setq projectile-indexing-method 'alien)
+  (setq projectile-enable-caching t)
+  (setq projectile-completion-system 'ivy))
+
+(use-package counsel-projectile
+  :ensure t
+  :config
+  (add-to-list 'ivy-initial-inputs-alist '(counsel-projectile-switch-project . ""))
+  :hook (after-init . counsel-projectile-mode)
+  ;; :bind-keymap ("M-s p" . projectile-command-map)
+  :bind (("M-s b" . counsel-projectile-switch-to-buffer)
+         ("M-s d" . counsel-projectile-find-dir)
+         ("M-s p" . (lambda ()
+                      (interactive)
+                      (counsel-projectile-switch-project 4)))))
+#+END_SRC
+
+** swiper
+#+BEGIN_SRC emacs-lisp
+(use-package swiper
+  :ensure t
+  :after ivy
+  :config
+  (setq swiper-action-recenter t)
+  (setq swiper-goto-start-of-match t)
+  (setq swiper-include-line-number-in-search t)
+  :bind (("C-S-s" . swiper)
+         ("M-s s" . swiper-multi)
+         ("M-s w" . swiper-thing-at-point)))
+#+END_SRC
+** Ivy extensions
+*** Ivy rich
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-rich
+  :ensure t
+  :config
+  (setq ivy-rich-path-style 'abbreviate)
+
+  (setcdr (assq t ivy-format-functions-alist)
+          #'ivy-format-function-line)
+  :hook (after-init . ivy-rich-mode))
+#+END_SRC
+*** Ivy posframe
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-posframe
+  :ensure t
+  :delight
+  :config
+  (setq ivy-posframe-parameters
+        '((left-fringe . 2)
+          (right-fringe . 2)
+          (internal-border-width . 2)
+          (font . "Iosevka-11:hintstyle=hintfull")))
+  (setq ivy-posframe-height-alist
+        '((swiper . 15)
+          (swiper-isearch . 15)
+          (t . 10)))
+  (setq ivy-posframe-display-functions-alist
+        '((complete-symbol . ivy-posframe-display-at-point)
+          (swiper . nil)
+          (swiper-isearch . nil)
+          (t . ivy-posframe-display-at-frame-center)))
+  :hook (after-init . ivy-posframe-mode))
+#+END_SRC
 * magit
    Install magit from melpa.
 #+BEGIN_SRC emacs-lisp
 (use-package magit
-:ensure t
-:init
-(progn
-(bind-key "C-x g" 'magit-status)
-))
+  :ensure t
+  :init
+  (progn
+  (bind-key "C-x g" 'magit-status)))
 
 (use-package git-gutter
-:ensure t
-:init
-(global-git-gutter-mode +1))
+  :ensure t
+  :init
+  (global-git-gutter-mode +1))
 #+END_SRC
-
 
 * iedit
    https://www.emacswiki.org/emacs/Iedit
@@ -382,18 +649,17 @@ Find file interactively
 (use-package iedit :ensure t)
 #+END_SRC
 
-
-
 * company
    https://www.emacswiki.org/emacs/CompanyMode
 #+BEGIN_SRC emacs-lisp
 (use-package company
-:ensure t
-:config
-(add-hook 'after-init-hook 'global-company-mode)
-(global-company-mode t)
-(setq company-minimum-prefix-length 1)
-(setq company-idle-delay 0))
+  :disabled
+  :ensure t
+  :config
+  (add-hook 'after-init-hook 'global-company-mode)
+  (global-company-mode t)
+  (setq company-minimum-prefix-length 1)
+  (setq company-idle-delay 0))
 #+END_SRC
 
 * company-quickhelp
@@ -409,20 +675,20 @@ Find file interactively
    This is a dependency for company-anaconda, so will be installed by
    company-anaconda
 #+BEGIN_SRC emacs-lisp
-(add-hook 'python-mode-hook 'anaconda-mode)
+;;(add-hook 'python-mode-hook 'anaconda-mode)
 #+END_SRC
 
 * company-anaconda
 #+BEGIN_SRC emacs-lisp
 (use-package rx
+:disabled
 :ensure t)
 (add-to-list 'company-backends 'company-anaconda)
 #+END_SRC
 
-
 * yasnippet
 #+BEGIN_SRC emacs-lisp
-;; specify folder containing personal snippets. 
+;; specify folder containing personal snippets.
 (add-to-list 'load-path
              "~/.emacs.d/plugins/yasnippet")
 (use-package yasnippet
@@ -458,7 +724,6 @@ Find file interactively
 * yasnippet-snippets
 Collection of yasnippet snippets.
 
-
 * highlight-indent-guides
 Install package from melpa.
 https://github.com/DarthFennec/highlight-indent-guides
@@ -473,21 +738,20 @@ Highlights indentation levels.
 )
 #+END_SRC
 
-
 * ox-reveal
    Must add [[org-elpa]] before package can be installed.
 #+BEGIN_SRC emacs-lisp
 (use-package ox-reveal
+:disabled
 :ensure t
 :pin org
 )
-(setq org-reveal-root "file:///D:/dev/3rdparty/revealjs")
+;;(setq org-reveal-root "file:///D:/dev/3rdparty/revealjs")
 #+END_SRC
-
 
 * evil
 Configuration from: https://github.com/bradwright/emacs.d/blob/master/setup-evil.el
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
 
 (use-package undo-tree :ensure t)
 (use-package goto-chg :ensure t)
@@ -532,39 +796,67 @@ Configuration from: https://github.com/bradwright/emacs.d/blob/master/setup-evil
 ;;
 #+END_SRC
 
-
 * Themes
 See '''M-x customize-themes''' for examples
-Can find others in melpa and load from there:
- - cycle-themes
-   - see config in Installed Packages [[cycle themes]] section
+Can find others in melpa and load from there.
 ** current theme
-Improve theme loading; [[https://www.reddit.com/r/emacs/comments/4mzynd/what_emacs_theme_are_you_currently_using/d43c5cw][from reddit]]
 #+BEGIN_SRC emacs-lisp
-(defadvice load-theme (before clear-previous-themes activate)
-  "Clear existing theme settings instead of layering them"
-  (mapc #'disable-theme custom-enabled-themes))
+(use-package modus-operandi-theme
+  :ensure t
+  :config
+  (setq custom-safe-themes t)
+  (setq modus-operandi-theme-slanted-constructs t
+        modus-operandi-theme-bold-constructs t
+        modus-operandi-theme-proportional-fonts nil
+        modus-operandi-theme-scale-headings t
+        modus-operandi-theme-scale-1 1.1
+        modus-operandi-theme-scale-2 1.2
+        modus-operandi-theme-scale-3 1.3
+        modus-operandi-theme-scale-4 1.4)
+  (load-theme 'modus-operandi t))
 
-;;(load-theme 'zenburn t)
-;;(load-theme 'alect-light)
-;;(load-theme 'alect-dark)
-;;(load-theme 'alect-black)
-;;(use-package atom-one-dark-theme
-;;:ensure t
-;;:config
-;;(load-theme 'atom-one-dark))
+(use-package modus-vivendi-theme
+  :disabled
+  :ensure t
+  :config
+  (setq modus-vivendi-theme-slanted-constructs t
+        modus-vivendi-theme-bold-constructs t
+        modus-vivendi-theme-proportional-fonts nil
+        modus-vivendi-theme-scale-headings t
+        modus-vivendi-theme-scale-1 1.1
+        modus-vivendi-theme-scale-2 1.2
+        modus-vivendi-theme-scale-3 1.3
+        modus-vivendi-theme-scale-4 1.4)
+  (load-theme 'modus-vivendi t))
 
-(use-package spacemacs-theme
-:ensure t
-:config
-(load-theme 'spacemacs-dark-theme))
-
+;;(use-package emacs
+;;  :ensure t
+;;  :config
+;;  (defun prot/modus-themes-toggle ()
+;;    "Simplistic toggle for my Modus Themes.  All it does is check
+;;if `modus-operandi' (light version) is active and if so switch to
+;;`modus-vivendi' (dark version).  Else it switches to the light
+;;theme."
+;;    (interactive)
+;;    (if (eq (car custom-enabled-themes) 'modus-operandi)
+;;        (prot/modus-vivendi)
+;;      (prot/modus-operandi)))
+;;  :bind ("<f5>" . prot/modus-themes-toggle)
+;;  :hook (after-init . prot/modus-operandi))
+(defun modus-themes-toggle ()
+  "Simplistic toggle for my Modus Themes.  All it does is check
+if `modus-operandi' (light version) is active and if so switch to
+`modus-vivendi' (dark version).  Else it switches to the light
+theme."
+  (interactive)
+  (if (eq (car custom-enabled-themes) 'modus-operandi)
+      (load-theme 'modus-vivendi t)
+    (load-theme 'modus-operandi t)))
 #+END_SRC
-
 
 * Language Specific
 ** Web Mode
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
 (setq web-mode-markup-indent-offset 2)
 (setq web-mode-css-indent-offset 2)
 (setq web-mode-code-indent-offset 2)
@@ -577,7 +869,7 @@ Improve theme loading; [[https://www.reddit.com/r/emacs/comments/4mzynd/what_ema
 
 * GDB
 Show me all the windows
-#+BEGIN_SRC emacs-lisp 
+#+BEGIN_SRC emacs-lisp
 (setq gdb-many-windows 't)
 #+END_SRC
 
@@ -592,5 +884,3 @@ Show me all the windows
 (global-set-key (kbd "C-Z") 'count-matches)
 
 #+END_SRC
-
-
