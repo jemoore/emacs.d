@@ -1,7 +1,7 @@
 #+Title: Emacs Configuration
 
-* Overview
-** Introduction
+* overview
+** introduction
    This org document contains my emacs configuration.  Each section contains a
 code blocks wrappted in **#+begin_src** and **#+end-src** tags.  Using org-babel,
 the code blocks are put into a single file, settings.el, and loaded by the
@@ -10,10 +10,10 @@ the code blocks are put into a single file, settings.el, and loaded by the
 When changes are made to this file it is necessary to remove the settings.el
 file so that it will be regenerated from this source file.
 
-** Resources
+** resources
 [[https://www.emacswiki.org/emacs/SiteMap][Emacs Wiki]]
 [[https://gitlab.com/protesilaos/dotfiles/blob/master/emacs/.emacs.d/emacs-init.org][Protesilaos Setup]]
-* Packages
+* package archives
   Set up package archives.
   org-elpa is mainly here for the ox-reveal package.
 #+BEGIN_SRC emacs-lisp
@@ -24,10 +24,9 @@ file so that it will be regenerated from this source file.
 (package-initialize)
 #+END_SRC
 
-* Basic Configurations
+* basic configurations
 This section contains the basic Emacs settings to turn off menu, toolbars,
 scroll bars, turn on line numbers, etc...
-
 ** Simple UI
 #+BEGIN_SRC emacs-lisp
 (menu-bar-mode -1)
@@ -118,13 +117,13 @@ So only show line numbers in prog-mode
             (setq-default truncate-lines t)))
 #+END_SRC
 
-* Delight
+* delight
 #+BEGIN_SRC emacs-lisp
 (use-package delight
   :ensure t
   :after use-package)
 #+END_SRC
-* Font
+* font
 Set font to use in all buffers.
 #+BEGIN_SRC emacs-lisp
 (set-face-attribute 'default nil
@@ -136,24 +135,24 @@ Set font to use in all buffers.
 (set-frame-font "Iosevka" nil t)
 #+END_SRC
 
-* Editing
-** Indentation
+* editing
+** indentation
 #+BEGIN_SRC emacs-lisp
 (setq c-basic-offset 2)
 (setq tab-width 2)
 (setq-default indent-tabs-mode nil)
 #+END_SRC
-** History
+** history
 #+BEGIN_SRC emacs-lisp
 ;; remember where our cursor was at last close
 (savehist-mode 1)
 #+END_SRC
-** Backup / Autosave
+** backup / autosave
 #+BEGIN_SRC emacs-lisp
 (setq make-backup-files nil)
 (setq auto-save-default nil)
 #+END_SRC
-** Parenthesis handling
+** parenthesis handling
 #+BEGIN_SRC emacs-lisp
 (electric-pair-mode 1)
 (show-paren-mode 1)
@@ -164,17 +163,31 @@ Set font to use in all buffers.
 (paredit-mode 1))
 #+END_SRC
 
-** Whitespace
+** whitespace
 #+BEGIN_SRC emacs-lisp
 (add-hook 'before-save-hook 'whitespace-cleanup)
 (setq require-final-newline t)
 #+END_SRC
 
+* which-key
+#+BEGIN_SRC emacs-lisp
+(use-package which-key
+  :ensure t
+  :config (which-key-mode 1))
+
+(use-package general
+  :after which-key
+  :ensure t
+  :config
+  (general-override-mode 1))
+
+#+END_SRC
 * ido
 Interactive DO.
 Find file interactively
 #+BEGIN_SRC emacs-lisp
 (use-package ido
+:disabled
 :ensure t
 :config
 (ido-mode 1)
@@ -191,12 +204,125 @@ Find file interactively
 * ido grid mode
 #+BEGIN_SRC emacs-lisp
 (use-package ido-grid-mode
+:disabled
 :ensure t
 :config
 (ido-grid-mode 1))
 #+END_SRC
 
-* winner mode
+* windows
+** window
+#+begin_src emacs-lisp
+(use-package window
+  :init
+  ;; TODO do not repeat common parts, abstract them somehow
+  (setq display-buffer-alist
+        '(;; top side window
+          ("\\*\\(Flycheck\\|Package-Lint\\).*"
+           (display-buffer-in-side-window)
+           (window-height . 0.15)
+           (side . top)
+           (slot . 0)
+           (window-parameters . ((no-other-window . t))))
+          ;; bottom side window
+          ("\\*e?shell.*"
+           (display-buffer-in-side-window)
+           (window-height . 0.25)
+           (side . bottom)
+           (slot . 0))
+          ("\\*\\(Backtrace\\|Warnings\\|Compile-Log\\|[Hh]elp\\|Messages\\)\\*"
+           (display-buffer-in-side-window)
+           (window-height . 0.25)
+           (side . bottom)
+           (slot . 1))
+          ;; right side window
+          ("\\*Faces\\*"
+           (display-buffer-in-side-window)
+           (window-width . 0.333)
+           (side . right)
+           (slot . 0)
+           (window-parameters . ((no-other-window . t)
+                                 (mode-line-format . (" "
+                                                      mode-line-buffer-identification)))))
+          ("\\*Custom.*"
+           (display-buffer-in-side-window)
+           (window-width . 0.333)
+           (side . right)
+           (slot . 1))))
+  :bind (("s-n" . next-buffer)
+         ("s-p" . previous-buffer)
+         ("s-o" . other-window)
+         ("s-2" . split-window-below)
+         ("s-3" . split-window-right)
+         ("s-0" . delete-window)
+         ("s-1" . delete-other-windows)
+         ("s-5" . delete-frame)
+         ("<f8>" . window-toggle-side-windows)))
+
+;; These are all experimental.  Just showcasing the power of passing
+;; parameters to windows or frames.
+(use-package emacs
+  :config
+  (defun prot/window-dired-vc-root-left ()
+    "Open root directory of current version-controlled repository
+or the present working directory with `dired' and bespoke window
+parameters.  This is meant as a proof-of-concept function,
+illustrating how to leverage window rules to display a buffer,
+plus a few concomitant extras."
+    (interactive)
+    (let ((dir (if (eq (vc-root-dir) nil)
+                   (dired-noselect default-directory)
+                 (dired-noselect (vc-root-dir)))))
+      (display-buffer-in-side-window
+       dir `((side . left)
+             (slot . 0)
+             (window-width . 0.16)
+             (window-parameters . ((no-other-window . t)
+                                   (no-delete-other-windows . t)
+                                   (mode-line-format . (" "
+                                                        mode-line-buffer-identification))))))
+      (with-current-buffer dir
+        (rename-buffer "*Dired-Side*")
+        (setq-local window-size-fixed 'width)))
+    (with-eval-after-load 'ace-window
+      (when (boundp 'aw-ignored-buffers)
+        (add-to-list 'aw-ignored-buffers "*Dired-Side*"))))
+
+  (defun prot/make-frame-floating-with-current-buffer ()
+    "Display the current buffer in a new floating frame.
+
+This passes certain parameters to the newly created frame:
+
+- use a different name than the default;
+- use a graphical frame;
+- do not display the minibuffer.
+
+The name is meant to be used by the external rules of my tiling
+window manager (BSPWM) to present the frame in a floating state."
+    (interactive)
+    (make-frame '((name . "my_float_window")
+                  (window-system . x)
+                  (minibuffer . nil))))
+
+  (defun prot/display-buffer-at-bottom ()
+    "Move the current buffer to the bottom of the frame.  This is
+useful to take a buffer out of a side window.
+
+The window parameters of this function are provided mostly for
+didactic purposes."
+    (interactive)
+    (let ((buffer (current-buffer)))
+      (with-current-buffer buffer
+        (delete-window)
+        (display-buffer-at-bottom
+         buffer `((window-parameters . ((mode-line-format . (" "
+                                                             mode-line-buffer-identification)))))))))
+  :bind (("C-c d" . prot/window-dired-vc-root-left)
+         ("C-c f" . prot/make-frame-floating-with-current-buffer)
+         ("C-c b" . prot/display-buffer-at-bottom)))
+#+end_src
+
+** winner mode
 '''Ctrl-c''' then right/left arrow key
 #+BEGIN_SRC emacs-lisp
 (use-package winner
@@ -205,7 +331,6 @@ Find file interactively
          ("<s-left>" . winner-undo)))
 #+END_SRC
 
-* Windows
 ** ace-windows
 #+BEGIN_SRC emacs-lisp
 (use-package ace-window
@@ -246,7 +371,7 @@ Find file interactively
 #+BEGIN_SRC emacs-lisp
 
 ;; for use with EVIL mode
-;;(evil-define-key 'normal org-mode-map (kbd "TAB") 'org-cycle)
+;; (evil-define-key 'normal org-mode-map (kbd "TAB") 'org-cycle)
 
 ;; difficulty getting reveal to work
 (setq org-enable-reveal-js-support t)
@@ -762,25 +887,25 @@ Configuration from: https://github.com/bradwright/emacs.d/blob/master/setup-evil
 (evil-mode 1)
 )
 
-(setq
-   ;; this stops evil from overwriting the cursor color
-   evil-default-cursor t
-   ;; h/l wrap around to next lines
-   evil-cross-lines t
-   evil-default-state 'normal
-   ;; include first/last character when moving to e/bol
-   evil-want-visual-char-semi-exclusive t
-   ;; don't move the cursor around like Vim
-   evil-move-cursor-back nil
-   )
-
-  ;; use ido to open files
-  (define-key evil-ex-map "e " 'ido-find-file)
-  (define-key evil-ex-map "b " 'ido-switch-buffer)
-
-  ;; make end-of-line work in insert
-  (define-key evil-insert-state-map "\C-e" 'end-of-line)
-
+;;(setq
+;;   ;; this stops evil from overwriting the cursor color
+;;   evil-default-cursor t
+;;   ;; h/l wrap around to next lines
+;;   evil-cross-lines t
+;;   evil-default-state 'normal
+;;   ;; include first/last character when moving to e/bol
+;;   evil-want-visual-char-semi-exclusive t
+;;   ;; don't move the cursor around like Vim
+;;   evil-move-cursor-back nil
+;;   )
+;;
+;;  ;; use ido to open files
+;;  (define-key evil-ex-map "e " 'ido-find-file)
+;;  (define-key evil-ex-map "b " 'ido-switch-buffer)
+;;
+;;  ;; make end-of-line work in insert
+;;  (define-key evil-insert-state-map "\C-e" 'end-of-line)
+;;;;;;;
 ;;  ;; Make C-g work like <esc>
 ;;  (define-key evil-normal-state-map "\C-g" 'evil-normal-state)
 ;;  (define-key evil-visual-state-map "\C-g" 'evil-normal-state)
@@ -796,6 +921,19 @@ Configuration from: https://github.com/bradwright/emacs.d/blob/master/setup-evil
 ;;
 #+END_SRC
 
+* elfeed
+#+BEGIN_SRC emacs-lisp
+(use-package elfeed-org
+  :ensure t
+  :config
+  (elfeed-org)
+  (setq rmh-elfeed-org-files (list "/media/Data/Documents/kb/org/elfeed.org")))
+
+(use-package elfeed
+  :ensure t
+  :config
+  (setq elfeed-db-directory "//media/Data/Documents/org/elfeeddb/"))
+#+END_SRC
 * Themes
 See '''M-x customize-themes''' for examples
 Can find others in melpa and load from there.
@@ -873,14 +1011,166 @@ Show me all the windows
 (setq gdb-many-windows 't)
 #+END_SRC
 
+* custom functions
+#+BEGIN_SRC emacs-lisp
+(defun find-user-init-file ()
+  "Edit the `user-init-file', in same window."
+  (interactive)
+  (find-file user-init-file))
+
+(defun load-user-init-file ()
+  "Load the `user-init-file', in same window."
+  (interactive)
+  (load-file user-init-file))
+
+ ;;Taken from http://emacsredux.com/blog/2013/05/04/rename-file-and-buffer/
+(defun rename-file-and-buffer ()
+  "Rename the current buffer and file it is visiting."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (message "Buffer is not visiting a file!")
+      (let ((new-name (read-file-name "New name: " filename)))
+        (cond
+         ((vc-backend filename) (vc-rename-file filename new-name))
+         (t
+          (rename-file filename new-name t)
+          (set-visited-file-name new-name t t)))))))
+#+END_SRC
 * Key Bindings
 #+BEGIN_SRC emacs-lisp
 
-(global-set-key (kbd "C-?") 'hippie-expand)
-(global-set-key (kbd "M-D") 'backward-kill-word)
-(global-set-key (kbd "DEL") 'backward-delete-char)
-(global-set-key (kbd "C-z") 'replace-string)
-;;(global-set-key (kbd "C-M-z") 'replace regex)
-(global-set-key (kbd "C-Z") 'count-matches)
+;;(global-set-key (kbd "C-?") 'hippie-expand)
+;;(global-set-key (kbd "M-D") 'backward-kill-word)
+;;(global-set-key (kbd "DEL") 'backward-delete-char)
+;;(global-set-key (kbd "C-z") 'replace-string)
+;;;;(global-set-key (kbd "C-M-z") 'replace regex)
+;;(global-set-key (kbd "C-Z") 'count-matches)
 
+
+(general-create-definer tyrant-def
+  :states '(normal visual insert motion emacs)
+  :prefix "SPC"
+  :non-normal-prefix "C-SPC")
+(general-create-definer despot-def
+  :states '(normal insert)
+  :prefix "SPC"
+  :non-normal-prefix "C-SPC")
+(general-define-key
+  :keymaps 'key-translation-map
+  "ESC" (kbd "C-g"))
+(general-def
+  "C-x x" 'eval-defun)
+(tyrant-def
+  "TAB" 'previous-buffer
+  "SPC"    (general-simulate-key "C-x")
+  "c"   (general-simulate-key "C-c")
+  "h"   (general-simulate-key "C-h")
+  "u"   (general-simulate-key "C-u")
+  "x"   (general-simulate-key "C-x")
+   ;; Package manager
+  "lp"  'list-packages
+   ;; Theme operations
+  "t"   '(:ignore t :which-key "themes")
+  "tn"  'my/cycle-theme
+  "tt"  'load-theme
+  "tl"  'load-leuven-theme
+  "td"  'load-dichromacy-theme
+  "tg"  'load-gruvbox-theme
+  "tmo" 'load-modus-operandi-theme
+  "tmv" 'load-modus-vivendi-theme
+   ;; Quit operations
+  "q"   '(:ignore t :which-key "quit emacs")
+  "qq"  'kill-emacs
+  "qz"  'delete-frame
+   ;; Buffer operations
+  "b"   '(:ignore t :which-key "buffer")
+  "bb"  'mode-line-other-buffer
+  "bd"  'kill-this-buffer
+  "b]"  'next-buffer
+  "b["  'previous-buffer
+  "bq"  'kill-buffer-and-window
+  "bR"  'rename-file-and-buffer
+  "br"  'revert-buffer
+   ;; Window operations
+  "w"   '(:ignore t :which-key "window")
+  "wm"  'maximize-window
+  "w/"  'split-window-horizontally
+  "wv"  'split-window-vertically
+  "wm"  'maximize-window
+  "wu"  'winner-undo
+  "ww"  'other-window
+  "wd"  'delete-window
+  "wD"  'delete-other-windows
+   ;; File operations
+  "f"   '(:ignore t :which-key "files")
+  "fc"  'write-file
+  "fe"  '(:ignore t :which-key "emacs")
+  "fed" 'find-user-init-file
+  "feR" 'load-user-init-file
+  "fj"  'dired-jump
+  "fl"  'find-file-literally
+  "fR"  'rename-file-and-buffer
+  "fs"  'save-buffer
+   ;; Applications
+  "a"   '(:ignore t :which-key "Applications")
+  "ad"  'dired
+  "ae"  'elfeed
+  ":"   'shell-command
+  ";"   'eval-expression
+  "ac"  'calendar
+  "o"   '(:ignore t :which-key "Org-mode")
+  "oa"  'org-agenda
+  "oc"  '(:ignore t :which-key "Clock")
+  "oci" 'org-clock-in
+  "oco" 'org-clock-out)
+
+(general-def 'normal doc-view-mode-map
+  "j"   'doc-view-next-line-or-next-page
+  "k"   'doc-view-previous-line-or-previous-page
+  "gg"  'doc-view-first-page
+  "G"   'doc-view-last-page
+  "C-d" 'doc-view-scroll-up-or-next-page
+  "C-f" 'doc-view-scroll-up-or-next-page
+  "C-b" 'doc-view-scroll-down-or-previous-page)
+(general-def '(normal visual) outline-minor-mode-map
+  "zn"  'outline-next-visible-heading
+  "zp"  'outline-previous-visible-heading
+  "zf"  'outline-forward-same-level
+  "zB"  'outline-backward-same-level)
+(general-def 'normal package-menu-mode-map
+  "i"   'package-menu-mark-install
+  "U"   'package-menu-mark-upgrades
+  "d"   'package-menu-mark-delete
+  "u"   'package-menu-mark-unmark
+  "x"   'package-menu-execute
+  "q"   'quit-window)
+(general-def 'normal calendar-mode-map
+  "h"   'calendar-backward-day
+  "j"   'calendar-forward-week
+  "k"   'calendar-backward-week
+  "l"   'calendar-forward-day
+  "0"   'calendar-beginning-of-week
+  "^"   'calendar-beginning-of-week
+  "$"   'calendar-end-of-week
+  "["   'calendar-backward-year
+  "]"   'calendar-forward-year
+  "("   'calendar-beginning-of-month
+  ")"   'calendar-end-of-month
+  "SPC" 'scroll-other-window
+  "S-SPC" 'scroll-other-window-down
+  "<delete>" 'scroll-other-window-down
+  "<"   'calendar-scroll-right
+  ">"   'calendar-scroll-left
+  "C-b" 'calendar-scroll-right-three-months
+  "C-f" 'calendar-scroll-left-three-months
+  "{"   'calendar-backward-month
+  "}"   'calendar-forward-month
+  "C-k" 'calendar-backward-month
+  "C-j" 'calendar-forward-month
+  "gk"  'calendar-backward-month
+  "gj"  'calendar-forward-month
+  "v"   'calendar-set-mark
+  "."   'calendar-goto-today
+  "q"   'calendar-exit)
 #+END_SRC
